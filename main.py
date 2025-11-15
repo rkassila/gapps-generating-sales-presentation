@@ -1,21 +1,18 @@
 import os
-import json
 import logging
 import base64
 from io import BytesIO
 import pandas as pd
 import seaborn as sns
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import openai
+from openai import OpenAI
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize OpenAI client
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_sales_slides(request):
     try:
@@ -27,9 +24,8 @@ def generate_sales_slides(request):
 
         # Convert to Pandas DataFrame
         df = pd.DataFrame(rows, columns=headers)
-        logger.info(f"DataFrame shape: {df.shape}")
 
-        # Generate graphs
+        # Generate sales graph
         plt.figure(figsize=(10, 6))
         sns.lineplot(data=df, x="Date", y="Sales", hue="Region")
         plt.title(f"Sales by Region - {report_month}")
@@ -39,6 +35,7 @@ def generate_sales_slides(request):
         sales_graph_buffer.seek(0)
         sales_graph_base64 = base64.b64encode(sales_graph_buffer.getvalue()).decode("utf-8")
 
+        # Generate profit graph
         plt.figure(figsize=(10, 6))
         sns.barplot(data=df, x="Product", y="Profit")
         plt.title(f"Profit by Product - {report_month}")
@@ -57,11 +54,11 @@ def generate_sales_slides(request):
         - 3 actionable recommendations.
         Data sample: {df.head().to_dict()}
         """
-        response = openai.ChatCompletion.create(
+        response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
         )
-        chatgpt_analysis = response["choices"][0]["message"]["content"]
+        chatgpt_analysis = response.choices[0].message.content
 
         return {
             "status": "success",
@@ -72,5 +69,5 @@ def generate_sales_slides(request):
         }
 
     except Exception as e:
-        logger.error(f"Error: {str(e)}", exc_info=True)
+        logger.error(f"Error: {str(e)}")
         return {"error": str(e), "status": "error"}
