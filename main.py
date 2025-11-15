@@ -61,13 +61,13 @@ def generate_sales_slides(request):
 
         sales_graph_base64 = generate_sales_graph(df, report_month)
         profit_graph_base64 = generate_profit_graph(df, report_month)
-        chatgpt_analysis = chatgpt_analysis(df, model, report_month)
+        analysis_text = chatgpt_analysis(df, model, report_month)
 
         return {
             "status": "success",
             "salesGraph": sales_graph_base64,
             "profitGraph": profit_graph_base64,
-            "analysis": chatgpt_analysis,
+            "analysis": analysis_text,
             "reportMonth": report_month
         }
 

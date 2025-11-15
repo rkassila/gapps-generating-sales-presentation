@@ -15,6 +15,7 @@ ENV/
 # Jupyter Notebook
 .ipynb_checkpoints
 *.ipynb_checkpoints/
+sales_analysis.ipynb
 
 # IDE
 .vscode/
